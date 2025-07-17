@@ -77,6 +77,54 @@ app.get(/^\/video\/(.*)$/, async (req, res) => {
 });
 
 
+app.post('/upload-doc', upload.single('file'), async (req, res) => {
+	if (!req.file || !req.body.file_name) return res.status(400).send('No file uploaded');
+	if (req.file.size > 10 * 1024 * 1024) {
+		fs.unlinkSync(req.file.path);
+		return res.status(400).send('File too large (limit: 10MB)');
+	}
+
+	const fileStream = fs.createReadStream(req.file.path);
+	// const r2Key = `documents/${Date.now()}_${req.file.originalname}`;
+	const r2Key = `documents/${req.body.file_name}`;
+
+	try {
+		await s3.send(new PutObjectCommand({
+			Bucket: `${bucketName}`,
+			Key: r2Key,
+			Body: fileStream,
+			ContentType: req.file.mimetype,
+		}));
+		fs.unlinkSync(req.file.path);
+		res.setHeader('Access-Control-Allow-Origin', '*');
+		res.json({ success: true, message: 'Uploaded document', key: r2Key });
+	} catch (err) {
+		fs.unlinkSync(req.file.path);
+        console.error(err);
+		res.status(500).json({ success: false, message: 'Upload failed' });
+	}
+});
+
+app.get(/^\/document\/(.*)$/, async (req, res) => {
+  const { GetObjectCommand } = require('@aws-sdk/client-s3');
+  const key = req.params[0];
+
+  try {
+    const data = await s3.send(new GetObjectCommand({
+      Bucket: `${bucketName}`,
+      Key: `documents/${key}`,
+    }));
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', data.ContentType || 'application/octet-stream');
+    data.Body.pipe(res);
+  } catch (e) {
+    res.status(404).send('Not found');
+  }
+});
+
+
+
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`)
 });
