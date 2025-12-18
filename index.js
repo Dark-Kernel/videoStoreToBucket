@@ -53,7 +53,11 @@ app.post('/upload', upload.single('video'), async (req, res) => {
 
 		fs.unlinkSync(outputPath);
         //res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+        //res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+        const allowedOrigin = process.env.NODE_ENV === 'production' 
+            ? 'https://www.scrollconnect.com' 
+            : 'http://localhost:3000';
+        res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
 		res.json({ message: 'Uploaded and compressed', key: r2Key });
 	});
 });
@@ -69,11 +73,16 @@ app.get(/^\/video\/(.*)$/, async (req, res) => {
       Key: key,
     }));
 
-    //res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+      //res.setHeader('Access-Control-Allow-Origin', '*');
+      //res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+      const allowedOrigin = process.env.NODE_ENV === 'production' 
+          ? 'https://www.scrollconnect.com' 
+          : 'http://localhost:3000';
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
 
-    res.setHeader('Content-Type', 'video/mp4');
-    data.Body.pipe(res);
+
+      res.setHeader('Content-Type', 'video/mp4');
+      data.Body.pipe(res);
   } catch (e) {
     res.status(404).send('Not found');
   }
@@ -99,8 +108,13 @@ app.post('/upload-doc', upload.single('file'), async (req, res) => {
 			ContentType: req.file.mimetype,
 		}));
 		fs.unlinkSync(req.file.path);
-		//res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+        //res.setHeader('Access-Control-Allow-Origin', '*');
+        //res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+        const allowedOrigin = process.env.NODE_ENV === 'production' 
+            ? 'https://www.scrollconnect.com' 
+            : 'http://localhost:3000';
+        res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+
 
 		res.json({ success: true, message: 'Uploaded document', key: r2Key });
 	} catch (err) {
@@ -120,8 +134,13 @@ app.get(/^\/document\/(.*)$/, async (req, res) => {
       Key: `documents/${key}`,
     }));
 
-    //res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+      //res.setHeader('Access-Control-Allow-Origin', '*');
+      //res.setHeader('Access-Control-Allow-Origin', 'https://scrollconnect.com, https://www.scrollconnect.com, http://localhost:3000');
+      const allowedOrigin = process.env.NODE_ENV === 'production' 
+          ? 'https://www.scrollconnect.com' 
+          : 'http://localhost:3000';
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+
 
     res.setHeader('Content-Type', data.ContentType || 'application/octet-stream');
     data.Body.pipe(res);
